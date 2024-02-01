@@ -8,7 +8,7 @@ export default function Stake() {
         <h1 className=" text-3xl flex items-center">
           <TbPigMoney className=" size-24"></TbPigMoney>
           <p className="ml-4">
-            Faça agora o stake de seu NFT e ganhe recompensas
+            Faça agora o stake de seu NFT e ganhe recompensas!
           </p>
         </h1>
         <div className="border-white flex flex-col text-lg border p-6 rounded-lg mt-16">
