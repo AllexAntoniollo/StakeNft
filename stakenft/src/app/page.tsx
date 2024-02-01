@@ -124,7 +124,7 @@ export default function MyStakes() {
           }}
           className="border-r-4 flex flex-col justify-evenly p-6 border-b-4 border-l border-t rounded-2xl"
         >
-          <h1 className="text-2xl font-semibold">NFT Guaxinim #3</h1>
+          <h1 className="text-2xl font-semibold">NFT Guaxinim #2</h1>
           <div className="flex flex-col mt-5 text-gray-400">
             <h2 className="flex justify-between">
               <p>Tipo NFT:</p>
