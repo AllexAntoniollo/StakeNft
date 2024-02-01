@@ -1,0 +1,16 @@
+{
+  "name": "hardhat-project",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.5"
+  },
+  "scripts": {
+    "test": "npx hardhat coverage",
+    "deploy": "npx hardhat run scripts/deploy.ts --network bscscan"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.1",
+    "dotenv": "^16.4.1",
+    "erc721a": "^4.2.3"
+  }
+}
