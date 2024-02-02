@@ -9,7 +9,7 @@ contract ITrust is ERC721A {
     {}
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://teal-causal-salamander-208.mypinata.cloud/";
+        return "ipfs://teal-causal-salamander-208.mypinata.cloud/";
     }
 
     function tokenURI(uint256 tokenId)
@@ -18,7 +18,7 @@ contract ITrust is ERC721A {
         override(ERC721A)
         returns (string memory)
     {
-        return string.concat(_baseURI(), super.tokenURI(tokenId), ".json");
+        return string.concat(_baseURI(), super.tokenURI(tokenId));
     }
 
     function mint(uint256 quantity) public {
