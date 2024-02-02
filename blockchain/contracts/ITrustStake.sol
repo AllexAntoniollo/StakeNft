@@ -34,6 +34,7 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
             if(stakeItems[i].owner != address(0)){
                 stakeItems[i].bnbReward = value;
                 ++currentIndex;
+                stakeItems[i].timestamp = 0;
                 if(currentIndex == totalStake)
                     break;
             }
@@ -41,11 +42,12 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
 
     }
 
-/*
+
     function payStakeManual(uint rewardDuration, uint rewardAmount) external onlyOwner{
         require(rewardAmount <= poolBNB,"The pool does not have enought BNB to pay");
+        require(poolBNB > 0,"The pool does not have BNB to pay");
         uint value = ((rewardAmount * 100) / totalStake) / 100;
-        poolBNB = 0;
+        poolBNB = poolBNB - rewardAmount;
         uint currentIndex = 0;
         for(uint i=1; i <= 100; ++i){
             if(stakeItems[i].owner != address(0)){
@@ -56,8 +58,8 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
                     break;
             }
         }
+    }
 
-    }*/
 
     function stake(uint tokenId) external nonReentrant{
         collection.safeTransferFrom(msg.sender,address(this),tokenId);
@@ -69,11 +71,13 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         stakeItems[tokenId].bnbReward = 0;
     }
 
+
     function harvest(uint tokenId) external nonReentrant{
         require(stakeItems[tokenId].owner == msg.sender, "Unauthorized");
         payable(stakeItems[tokenId].owner).transfer(stakeItems[tokenId].bnbReward);
         stakeItems[tokenId].bnbReward = 0;
     }
+
 
     function withdraw(uint tokenId) external nonReentrant{
         require(stakeItems[tokenId].owner == msg.sender, "Unauthorized");
@@ -83,9 +87,11 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         collection.safeTransferFrom(address(this), msg.sender, tokenId);
     }
 
+
     receive() external payable {
         poolBNB += msg.value;
     }
+
 
     function fetchMyNfts() external view returns(StakeItem[] memory){
         uint count = 0;

@@ -1,4 +1,7 @@
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import {
+  loadFixture,
+  time,
+} from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
@@ -55,7 +58,7 @@ describe("ITrustStake", function () {
     expect(await ITrustStake.poolBNB()).to.equal(0);
   });
 
-  it("Should harvest", async function () {
+  it("Should pay manual", async function () {
     const { ITrustStake, iTrustCollection, owner } = await loadFixture(
       deployFixture
     );
@@ -67,11 +70,80 @@ describe("ITrustStake", function () {
       to: ITrustStake.getAddress(),
       value: ethers.parseUnits("1", "ether"),
     });
-    await ITrustStake.payStakeAutomated();
+    const days = 10 * 24 * 60 * 60 * 1000;
+    const timestampAtual = Math.floor(Date.now());
+
+    const timestampNoFuturo = timestampAtual + days;
+
+    await ITrustStake.payStakeManual(
+      timestampNoFuturo,
+      ethers.parseUnits("0.6", "ether")
+    );
+
+    expect(await ITrustStake.poolBNB()).to.equal(
+      ethers.parseUnits("0.4", "ether")
+    );
+  });
+
+  it("Should harvest manual", async function () {
+    const { ITrustStake, iTrustCollection, owner, otherAccount } =
+      await loadFixture(deployFixture);
+
+    await iTrustCollection.mint(1);
+    await iTrustCollection.approve(ITrustStake.getAddress(), 1);
+    await ITrustStake.stake(1);
+    await otherAccount.sendTransaction({
+      to: ITrustStake.getAddress(),
+      value: ethers.parseUnits("1", "ether"),
+    });
+    const days = 10 * 24 * 60 * 60 * 1000;
+    const timestampAtual = Math.floor(Date.now());
+
+    const timestampNoFuturo = timestampAtual + days;
+
+    await ITrustStake.payStakeManual(
+      timestampNoFuturo,
+      ethers.parseUnits("0.6", "ether")
+    );
+
+    await time.increase(11 * 24 * 60 * 60);
+    const ownerBalanceBefore = await ethers.provider.getBalance(owner.address);
+
     await ITrustStake.harvest(1);
+    const myNfts = await ITrustStake.fetchMyNfts();
+    console.log(myNfts);
+    const ownerBalanceAfter = await ethers.provider.getBalance(owner.address);
+
+    expect(ownerBalanceAfter).to.be.closeTo(
+      ownerBalanceBefore + ethers.parseUnits("0.6", "ether"),
+      ethers.parseUnits("0.01", "ether")
+    );
+  });
+
+  it("Should harvest", async function () {
+    const { ITrustStake, iTrustCollection, owner, otherAccount } =
+      await loadFixture(deployFixture);
+
+    await iTrustCollection.mint(1);
+    await iTrustCollection.approve(ITrustStake.getAddress(), 1);
+    await ITrustStake.stake(1);
+
+    await otherAccount.sendTransaction({
+      to: ITrustStake.getAddress(),
+      value: ethers.parseUnits("1", "ether"),
+    });
+    await ITrustStake.payStakeAutomated();
+    const ownerBalanceBefore = await ethers.provider.getBalance(owner.address);
+    await ITrustStake.harvest(1);
+    const ownerBalanceAfter = await ethers.provider.getBalance(owner.address);
 
     const contractBalance = await ethers.provider.getBalance(
       ITrustStake.getAddress()
+    );
+
+    expect(ownerBalanceAfter).to.be.closeTo(
+      ownerBalanceBefore + ethers.parseUnits("1", "ether"),
+      ethers.parseUnits("0.01", "ether")
     );
 
     expect(contractBalance).to.equal(0);
