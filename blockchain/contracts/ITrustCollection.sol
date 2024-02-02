@@ -18,10 +18,10 @@ contract ITrust is ERC721A {
         override(ERC721A)
         returns (string memory)
     {
-        return string.concat(_baseURI(), super.tokenURI(tokenId));
+        return string.concat(super.tokenURI(tokenId));
     }
 
-    function mint(uint256 quantity) public {
+    function mint(uint256 quantity) external {
         _mint(msg.sender,quantity);
     }
 

@@ -1,13 +1,21 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const ERC721a = await ethers.getContractFactory("ITrust");
-  const erc721a = await ERC721a.deploy();
+  const ITrustCollection = await ethers.getContractFactory("ITrust");
+  const iTrustCollection = await ITrustCollection.deploy();
 
-  await erc721a.waitForDeployment();
-  const marketAddress = await erc721a.getAddress();
+  await iTrustCollection.waitForDeployment();
+  const iTrustCollectionAddress = await iTrustCollection.getAddress();
 
-  console.log(`erc721a deployed to ${marketAddress}`);
+  console.log(`iTrustCollection deployed to ${iTrustCollectionAddress}`);
+
+  const ITrustStake = await ethers.getContractFactory("ITrustStake");
+  const iTrustStake = await ITrustStake.deploy(iTrustCollectionAddress);
+
+  await iTrustStake.waitForDeployment();
+  const iTrustStakeAddress = await iTrustStake.getAddress();
+
+  console.log(`iTrustStake deployed to ${iTrustStakeAddress}`);
 }
 
 main().catch((error) => {
