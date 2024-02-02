@@ -22,8 +22,7 @@ describe("ITrustCollection", function () {
     await contract.mint(1);
 
     const balance = await contract.balanceOf(owner.address);
-    const tokenId = 0;
-    const ownerOf = await contract.ownerOf(tokenId);
+    const ownerOf = await contract.ownerOf(1);
     const totalSupply = await contract.totalSupply();
 
     expect(balance).to.equal(1, "Can't mint");
@@ -34,8 +33,8 @@ describe("ITrustCollection", function () {
     const { contract, owner, otherAccount } = await loadFixture(deployFixture);
 
     await contract.mint(1);
-    expect(await contract.tokenURI(0)).to.equal(
-      "ipfs://teal-causal-salamander-208.mypinata.cloud/0"
+    expect(await contract.tokenURI(1)).to.equal(
+      "ipfs://teal-causal-salamander-208.mypinata.cloud/1"
     );
   });
 });

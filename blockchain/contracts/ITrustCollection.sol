@@ -4,9 +4,14 @@ pragma solidity ^0.8.24;
 import "erc721a/contracts/ERC721A.sol";
 
 contract ITrust is ERC721A {
+
     constructor()
         ERC721A("ITrust", "ITM")
     {}
+
+    function _startTokenId() internal override view virtual returns (uint256) {
+        return 1;
+    }
 
     function _baseURI() internal pure override returns (string memory) {
         return "ipfs://teal-causal-salamander-208.mypinata.cloud/";

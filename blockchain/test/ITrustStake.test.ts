@@ -11,7 +11,7 @@ describe("ITrustStake", function () {
     const addressNFT = iTrustCollection.getAddress();
 
     const iTrustStake = await ethers.getContractFactory("ITrustStake");
-    const ITrustStake = await iTrustStake.deploy(addressNFT);
+    const ITrustStake = await iTrustStake.deploy(addressNFT, owner.address);
 
     return {
       ITrustStake,
@@ -38,6 +38,45 @@ describe("ITrustStake", function () {
     expect(balanceAfter).to.equal(balanceBefore - ethers.toBigInt(1));
   });
 
+  it("Should pay automated", async function () {
+    const { ITrustStake, iTrustCollection, owner } = await loadFixture(
+      deployFixture
+    );
+
+    await iTrustCollection.mint(1);
+    await iTrustCollection.approve(ITrustStake.getAddress(), 1);
+    await ITrustStake.stake(1);
+    await owner.sendTransaction({
+      to: ITrustStake.getAddress(),
+      value: ethers.parseUnits("1", "ether"),
+    });
+    await ITrustStake.payStakeAutomated();
+
+    expect(await ITrustStake.poolBNB()).to.equal(0);
+  });
+
+  it("Should harvest", async function () {
+    const { ITrustStake, iTrustCollection, owner } = await loadFixture(
+      deployFixture
+    );
+
+    await iTrustCollection.mint(1);
+    await iTrustCollection.approve(ITrustStake.getAddress(), 1);
+    await ITrustStake.stake(1);
+    await owner.sendTransaction({
+      to: ITrustStake.getAddress(),
+      value: ethers.parseUnits("1", "ether"),
+    });
+    await ITrustStake.payStakeAutomated();
+    await ITrustStake.harvest(1);
+
+    const contractBalance = await ethers.provider.getBalance(
+      ITrustStake.getAddress()
+    );
+
+    expect(contractBalance).to.equal(0);
+  });
+
   it("Should remove stake", async function () {
     const { ITrustStake, iTrustCollection, owner } = await loadFixture(
       deployFixture
@@ -56,19 +95,35 @@ describe("ITrustStake", function () {
     expect(await ITrustStake.totalStake()).to.equal(0);
   });
 
-  it("Should fetch All NFTs", async function () {
-    const { ITrustStake, iTrustCollection, owner } = await loadFixture(
+  it("Should not remove stake (Unauthorized)", async function () {
+    const { ITrustStake, iTrustCollection, otherAccount } = await loadFixture(
       deployFixture
     );
-    await iTrustCollection.mint(3);
-    await iTrustCollection.approve(ITrustStake.getAddress(), 2);
-    await ITrustStake.stake(2);
+
+    await iTrustCollection.mint(1);
+
+    await iTrustCollection.approve(ITrustStake.getAddress(), 1);
+
+    await ITrustStake.stake(1);
+    const instance = await ITrustStake.connect(otherAccount);
+
+    await expect(instance.withdraw(1)).to.be.revertedWith("Unauthorized");
+  });
+
+  it("Should not harvest (Unauthorized)", async function () {
+    const { ITrustStake, iTrustCollection, otherAccount } = await loadFixture(
+      deployFixture
+    );
+    await iTrustCollection.mint(1);
     await iTrustCollection.approve(ITrustStake.getAddress(), 1);
     await ITrustStake.stake(1);
-
-    const createdItems = await ITrustStake.fetchAllNfts();
-
-    expect(createdItems.length).to.equal(2);
+    await otherAccount.sendTransaction({
+      to: ITrustStake.getAddress(),
+      value: ethers.parseUnits("1", "ether"),
+    });
+    await ITrustStake.payStakeAutomated();
+    const instance = ITrustStake.connect(otherAccount);
+    await expect(instance.harvest(1)).to.be.revertedWith("Unauthorized");
   });
 
   it("Should fetch my NFTs", async function () {
@@ -81,18 +136,17 @@ describe("ITrustStake", function () {
 
     const instanceC = iTrustCollection.connect(otherAccount);
     await instanceC.mint(1);
-    await instanceC.approve(ITrustStake.getAddress(), 2);
+    await instanceC.approve(ITrustStake.getAddress(), 3);
     const instance = ITrustStake.connect(otherAccount);
-    await instance.stake(2);
+    await instance.stake(3);
 
-    const allNfts = await ITrustStake.fetchAllNfts();
     const myNftsOwner = await ITrustStake.fetchMyNfts();
     const myNftsAccount = await instance.fetchMyNfts();
 
     expect(myNftsOwner.length).to.equal(1);
     expect(myNftsAccount.length).to.equal(1);
-    expect(allNfts.length).to.equal(2);
   });
+
   it("Should fetch my NFTs zero", async function () {
     const { ITrustStake, iTrustCollection, otherAccount } = await loadFixture(
       deployFixture
