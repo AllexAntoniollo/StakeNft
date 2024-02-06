@@ -6,90 +6,108 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
-    constructor(address _colection, address initialOwner) Ownable(initialOwner){
-        collection = IERC721(_colection);
-    }
 
+
+    
     IERC721 private collection;
-    uint public totalStake = 0;
-    uint public poolBNB;
+    IERC20 public rewardsToken;
+    uint public decimals;
+    uint public totalStake;   
+    uint public totalStakeEligible;   
+    uint public poolAmount;
+    uint public startedPeriod;
+    uint public finishPeriod;
+    uint public tokensPerMinute;
+    uint public teste;
 
     struct StakeItem{
         uint itemId;
         uint tokenId;
-        address payable owner; 
-        uint timestamp;    
-        uint bnbReward;   
+        uint checkpoints;
+        uint totalPayed;
+        address payable owner;   
+        bool eligible;
+        bool withdrawed;
     }
-    mapping(uint => StakeItem) private stakeItems;
-
-    function payStakeAutomated() external onlyOwner{
-        require(poolBNB > 0,"The pool does not have BNB to pay");
-        uint value = ((poolBNB * 100) / totalStake) / 100;
-        poolBNB = 0;
-        uint currentIndex = 0;
-        for(uint i=1; i <= 100; ++i){
-            if(stakeItems[i].owner != address(0)){
-                stakeItems[i].bnbReward = value;
-                ++currentIndex;
-                stakeItems[i].timestamp = 0;
-                if(currentIndex == totalStake)
-                    break;
-            }
-        }
-
+    mapping(uint => StakeItem) public stakeItems;
+    
+    
+    constructor(address _colection, address initialOwner, address _rewardToken) Ownable(initialOwner){
+        collection = IERC721(_colection);
+        rewardsToken = IERC20(_rewardToken);
+        decimals = 8;
     }
 
 
-    function payStakeManual(uint rewardDuration, uint rewardAmount) external onlyOwner{
-        require(rewardAmount <= poolBNB,"The pool does not have enought BNB to pay");
-        require(poolBNB > 0,"The pool does not have BNB to pay");
-        uint value = ((rewardAmount * 100) / totalStake) / 100;
-        poolBNB = poolBNB - rewardAmount;
-        uint currentIndex = 0;
-        for(uint i=1; i <= 100; ++i){
-            if(stakeItems[i].owner != address(0)){
-                stakeItems[i].bnbReward = value;
-                stakeItems[i].timestamp = block.timestamp + rewardDuration;
-                ++currentIndex;
-                if(currentIndex == totalStake)
-                    break;
-            }
-        }
-    }
 
-
-    function stake(uint tokenId) external nonReentrant{
+    function stake(uint tokenId) external nonReentrant
+    {
         collection.safeTransferFrom(msg.sender,address(this),tokenId);
         ++totalStake;
         stakeItems[tokenId].owner = payable(msg.sender);
-        stakeItems[tokenId].timestamp = 0;
         stakeItems[tokenId].tokenId = tokenId;
         stakeItems[tokenId].itemId = totalStake;
-        stakeItems[tokenId].bnbReward = 0;
+        stakeItems[tokenId].checkpoints = block.timestamp; 
+        stakeItems[tokenId].withdrawed = false; 
+
     }
 
 
-    function harvest(uint tokenId) external nonReentrant{
-        require(stakeItems[tokenId].owner == msg.sender, "Unauthorized");
-        payable(stakeItems[tokenId].owner).transfer(stakeItems[tokenId].bnbReward);
-        stakeItems[tokenId].bnbReward = 0;
+    function setTokenDistribution(uint _finishPeriod, uint amount) external onlyOwner{
+        require(block.timestamp > finishPeriod, "Only 1 distribution for time");
+        startedPeriod = block.timestamp;
+        totalStakeEligible = totalStake;
+        finishPeriod = _finishPeriod + block.timestamp;
+        poolAmount = amount* 10**decimals;
+        tokensPerMinute = (amount* 10**decimals)/((finishPeriod-startedPeriod)/60);
     }
 
 
-    function withdraw(uint tokenId) external nonReentrant{
+    function withdraw(uint tokenId) external nonReentrant
+    {
         require(stakeItems[tokenId].owner == msg.sender, "Unauthorized");
-        payable(stakeItems[tokenId].owner).transfer(stakeItems[tokenId].bnbReward);
+        uint checkpoint = stakeItems[tokenId].checkpoints;
+        bool eligible = stakeItems[tokenId].eligible;
         delete stakeItems[tokenId];
+
         --totalStake;
+        if(startedPeriod > checkpoint  || eligible == true){
+            payStake(tokenId);
+            tokensPerMinute = (poolAmount)/((finishPeriod-startedPeriod)/60);
+            --totalStakeEligible;
+            stakeItems[tokenId].withdrawed = true;
+        }
         collection.safeTransferFrom(address(this), msg.sender, tokenId);
     }
 
+    function payStake(uint tokenId) public{
+        require(stakeItems[tokenId].checkpoints < startedPeriod || stakeItems[tokenId].eligible == true, "You are not eligible");
+        require(stakeItems[tokenId].withdrawed != true,"You are not eligible");
+        uint quantityMinutes;
 
-    receive() external payable {
-        poolBNB += msg.value;
+        if(stakeItems[tokenId].checkpoints < startedPeriod){
+            if(block.timestamp > finishPeriod){
+                quantityMinutes = (finishPeriod - startedPeriod)/60;
+            }else{
+                quantityMinutes = (block.timestamp - startedPeriod)/60;
+            }
+        }else{
+            quantityMinutes = (finishPeriod - startedPeriod)/60;
+        }
+        uint amount = (tokensPerMinute/totalStakeEligible)*quantityMinutes;
+        rewardsToken.transfer(msg.sender,(amount*10**10)-(stakeItems[tokenId].totalPayed*10**10));
+        if(stakeItems[tokenId].owner != address(0)){
+            stakeItems[tokenId].checkpoints = block.timestamp;
+            stakeItems[tokenId].eligible = true;
+            stakeItems[tokenId].totalPayed += amount;
+        }else{
+            poolAmount = poolAmount - amount;
+        }
+  
+        
     }
 
 
