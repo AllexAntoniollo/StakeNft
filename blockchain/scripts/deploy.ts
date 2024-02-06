@@ -1,21 +1,13 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  /*const ITrustCollection = await ethers.getContractFactory("ITrust");
+  const ITrustCollection = await ethers.getContractFactory("ITrust");
   const iTrustCollection = await ITrustCollection.deploy();
 
   await iTrustCollection.waitForDeployment();
   const iTrustCollectionAddress = await iTrustCollection.getAddress();
 
   console.log(`iTrustCollection deployed to ${iTrustCollectionAddress}`);
-
-  const Token = await ethers.getContractFactory("Token");
-  const token = await Token.deploy();
-
-  await token.waitForDeployment();
-  const tokenAddress = await token.getAddress();
-
-  console.log(`Token deployed to ${tokenAddress}`);*/
 
   const ITrustStake = await ethers.getContractFactory("ITrustStake");
   const iTrustStake = await ITrustStake.deploy(

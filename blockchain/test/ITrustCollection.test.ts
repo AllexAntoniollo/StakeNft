@@ -19,15 +19,18 @@ describe("ITrustCollection", function () {
   it("Should mint", async function () {
     const { contract, owner, otherAccount } = await loadFixture(deployFixture);
 
-    await contract.mint(1);
+    await contract.mint(100);
 
     const balance = await contract.balanceOf(owner.address);
     const ownerOf = await contract.ownerOf(1);
     const totalSupply = await contract.totalSupply();
 
-    expect(balance).to.equal(1, "Can't mint");
+    expect(balance).to.equal(100, "Can't mint");
     expect(ownerOf).to.equal(owner.address, "Can't mint");
-    expect(totalSupply).to.equal(1, "Can't mint");
+    expect(totalSupply).to.equal(100, "Can't mint");
+    await expect(contract.mint(1)).to.be.rejectedWith(
+      "Total supply of collection was been reached"
+    );
   });
   it("Should token URI", async function () {
     const { contract, owner, otherAccount } = await loadFixture(deployFixture);

@@ -12,102 +12,112 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
 
 
     
-    IERC721 private collection;
-    IERC20 public rewardsToken;
-    uint public decimals;
-    uint public totalStake;   
-    uint public totalStakeEligible;   
-    uint public poolAmount;
-    uint public startedPeriod;
-    uint public finishPeriod;
-    uint public tokensPerMinute;
-    uint public teste;
+    IERC721 private immutable collection;
+
+    uint private duration; //Duration of the distribution
+    uint private finishAt; //Finish period of distribution
+    uint private updatedAt; // Last timestamp updated
+    uint public rewardRate; //Reward per second
+    uint private rewardPerWeightStored; 
+    mapping(address => uint) public userRewardPerWeightPaid;
+    mapping(address => uint) public rewards; //Rewards of the user earned
+
+    //States Variables
+    uint private totalSupply; //Total weight of all NFTs
+    mapping(address => uint) public balaceOf; // Total weight of a user
+    uint public totalStake; //Number of total NFTs in stake
+
 
     struct StakeItem{
         uint itemId;
         uint tokenId;
-        uint checkpoints;
-        uint totalPayed;
         address payable owner;   
-        bool eligible;
-        bool withdrawed;
     }
-    mapping(uint => StakeItem) public stakeItems;
+    mapping(uint => StakeItem) private stakeItems;
     
     
-    constructor(address _colection, address initialOwner, address _rewardToken) Ownable(initialOwner){
+    constructor(address _colection, address initialOwner) Ownable(initialOwner){
         collection = IERC721(_colection);
-        rewardsToken = IERC20(_rewardToken);
-        decimals = 8;
     }
 
 
+    function setRewardsDuration(uint _duration) external onlyOwner{
+        require(finishAt < block.timestamp,"Reward duration not finished");
+        duration = _duration;
+    }
 
-    function stake(uint tokenId) external nonReentrant
-    {
+
+    function notifyRewardAmount(uint _amount) external onlyOwner updateReward(address(0)) {
+        if(block.timestamp > finishAt){
+            rewardRate = _amount / duration;
+        }else{
+            uint remainingRewards = rewardRate * (finishAt - block.timestamp);
+            rewardRate = (remainingRewards + _amount) / duration;
+        }
+
+        require(rewardRate > 0, "Reward rate equal to 0");
+        require(rewardRate * duration <= address(this).balance, "Reward amount greather than the balance");
+
+        finishAt = block.timestamp + duration;
+        updatedAt = block.timestamp;
+    }
+
+    function stake(uint tokenId) external nonReentrant updateReward(msg.sender){
         collection.safeTransferFrom(msg.sender,address(this),tokenId);
+        if(tokenId <= 25){
+            balaceOf[msg.sender] += 3;
+            totalSupply += 3;
+        }else{
+            balaceOf[msg.sender] += 1;
+            totalSupply += 1;
+        }
         ++totalStake;
         stakeItems[tokenId].owner = payable(msg.sender);
         stakeItems[tokenId].tokenId = tokenId;
         stakeItems[tokenId].itemId = totalStake;
-        stakeItems[tokenId].checkpoints = block.timestamp; 
-        stakeItems[tokenId].withdrawed = false; 
 
     }
 
-
-    function setTokenDistribution(uint _finishPeriod, uint amount) external onlyOwner{
-        require(block.timestamp > finishPeriod, "Only 1 distribution for time");
-        startedPeriod = block.timestamp;
-        totalStakeEligible = totalStake;
-        finishPeriod = _finishPeriod + block.timestamp;
-        poolAmount = amount* 10**decimals;
-        tokensPerMinute = (amount* 10**decimals)/((finishPeriod-startedPeriod)/60);
-    }
-
-
-    function withdraw(uint tokenId) external nonReentrant
-    {
+    function withdraw(uint tokenId) external nonReentrant updateReward(msg.sender) {
         require(stakeItems[tokenId].owner == msg.sender, "Unauthorized");
-        uint checkpoint = stakeItems[tokenId].checkpoints;
-        bool eligible = stakeItems[tokenId].eligible;
-        delete stakeItems[tokenId];
-
-        --totalStake;
-        if(startedPeriod > checkpoint  || eligible == true){
-            payStake(tokenId);
-            tokensPerMinute = (poolAmount)/((finishPeriod-startedPeriod)/60);
-            --totalStakeEligible;
-            stakeItems[tokenId].withdrawed = true;
+        if(tokenId <= 25){
+            balaceOf[msg.sender] -= 3;
+            totalSupply -= 3;
+        }else{
+            balaceOf[msg.sender] -= 1;
+            totalSupply -= 1;
         }
+        --totalStake;
+        delete stakeItems[tokenId];
         collection.safeTransferFrom(address(this), msg.sender, tokenId);
+
+
     }
 
-    function payStake(uint tokenId) public{
-        require(stakeItems[tokenId].checkpoints < startedPeriod || stakeItems[tokenId].eligible == true, "You are not eligible");
-        require(stakeItems[tokenId].withdrawed != true,"You are not eligible");
-        uint quantityMinutes;
+    function lastTimeRewardApplicable() public view returns(uint){
+        return _min(block.timestamp, finishAt);
+    }
 
-        if(stakeItems[tokenId].checkpoints < startedPeriod){
-            if(block.timestamp > finishPeriod){
-                quantityMinutes = (finishPeriod - startedPeriod)/60;
-            }else{
-                quantityMinutes = (block.timestamp - startedPeriod)/60;
-            }
-        }else{
-            quantityMinutes = (finishPeriod - startedPeriod)/60;
+    function rewardPerWeight() public view returns(uint){
+        if(totalSupply == 0){
+            return rewardPerWeightStored;
         }
-        uint amount = (tokensPerMinute/totalStakeEligible)*quantityMinutes;
-        rewardsToken.transfer(msg.sender,(amount*10**10)-(stakeItems[tokenId].totalPayed*10**10));
-        if(stakeItems[tokenId].owner != address(0)){
-            stakeItems[tokenId].checkpoints = block.timestamp;
-            stakeItems[tokenId].eligible = true;
-            stakeItems[tokenId].totalPayed += amount;
-        }else{
-            poolAmount = poolAmount - amount;
+        return rewardPerWeightStored + (rewardRate * (lastTimeRewardApplicable() - updatedAt) * 1e18) / totalSupply;
+    }
+
+    function earned(address _account) public view returns(uint){
+        return (balaceOf[_account] * (rewardPerWeight() - userRewardPerWeightPaid[_account])) / 1e18 + rewards[_account];
+    }
+    function getReward() external updateReward(msg.sender) {
+        uint reward = rewards[msg.sender];
+        if(reward > 0){
+            rewards[msg.sender] = 0;
+            payable(msg.sender).transfer(reward);
         }
-  
-        
+    }
+
+    function _min(uint x, uint y) internal pure returns(uint){
+        return x <= y ? x : y;
     }
 
 
@@ -144,5 +154,16 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
             }
             return items;
         }
+    }
+
+    modifier updateReward(address _account){
+        rewardPerWeightStored = rewardPerWeight();
+        updatedAt = lastTimeRewardApplicable();
+        if(_account != address(0)){
+            rewards[_account] = earned(_account);
+            userRewardPerWeightPaid[_account] = rewardPerWeightStored;
+        }
+
+        _;
     }
 }

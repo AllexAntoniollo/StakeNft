@@ -27,6 +27,7 @@ contract ITrust is ERC721A {
     }
 
     function mint(uint256 quantity) external {
+        require(_nextTokenId() <= 100,"Total supply of collection was been reached");
         _mint(msg.sender,quantity);
     }
 
