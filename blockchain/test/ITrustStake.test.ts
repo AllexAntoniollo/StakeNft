@@ -13,9 +13,20 @@ describe("ITrustStake", function () {
     const iTrustCollection = await ITrustCollection.deploy();
     const addressNFT = await iTrustCollection.getAddress();
 
+    const Token = await ethers.getContractFactory("Token");
+    const token = await Token.deploy();
+    const addressToken = await token.getAddress();
+
     const iTrustStake = await ethers.getContractFactory("ITrustStake");
-    const ITrustStake = await iTrustStake.deploy(addressNFT, owner.address);
+    const ITrustStake = await iTrustStake.deploy(
+      addressNFT,
+      owner.address,
+      addressToken
+    );
     const addressStake = await ITrustStake.getAddress();
+    await iTrustCollection.mint(99);
+    const instance = await iTrustCollection.connect(otherAccount);
+    await instance.mint(1);
 
     return {
       ITrustStake,
@@ -27,12 +38,51 @@ describe("ITrustStake", function () {
     };
   }
 
+  it("Should stake", async function () {
+    const { ITrustStake, iTrustCollection, owner } = await loadFixture(
+      deployFixture
+    );
+
+    await iTrustCollection.approve(ITrustStake.getAddress(), 25);
+    await ITrustStake.stake(25);
+    const firstBalance = await ITrustStake.balanceOf(owner);
+    await iTrustCollection.approve(ITrustStake.getAddress(), 26);
+    await ITrustStake.stake(26);
+
+    expect(firstBalance).to.be.equal(3);
+    expect(await ITrustStake.balanceOf(owner)).to.be.equal(4);
+    expect(await ITrustStake.totalStake()).to.be.equal(2);
+  });
+
+  it("Should withdraw", async function () {
+    const { ITrustStake, iTrustCollection, owner } = await loadFixture(
+      deployFixture
+    );
+
+    await iTrustCollection.approve(ITrustStake.getAddress(), 25);
+    await ITrustStake.stake(25);
+    await await iTrustCollection.approve(ITrustStake.getAddress(), 26);
+    await ITrustStake.stake(26);
+    await ITrustStake.withdraw(25);
+    const firstBalance = await ITrustStake.balanceOf(owner);
+    await ITrustStake.withdraw(26);
+
+    expect(firstBalance).to.be.equal(1);
+    expect(await ITrustStake.balanceOf(owner)).to.be.equal(0);
+    expect(await ITrustStake.totalStake()).to.be.equal(0);
+  });
+
+  it("Should set duration distribution", async function () {
+    const { ITrustStake } = await loadFixture(deployFixture);
+
+    const days = 60 * 60 * 24 * 30;
+    await ITrustStake.setRewardsDuration(days);
+  });
+
   it("Should not remove stake (Unauthorized)", async function () {
     const { ITrustStake, iTrustCollection, otherAccount } = await loadFixture(
       deployFixture
     );
-
-    await iTrustCollection.mint(1);
 
     await iTrustCollection.approve(ITrustStake.getAddress(), 1);
 
@@ -46,15 +96,13 @@ describe("ITrustStake", function () {
     const { ITrustStake, iTrustCollection, otherAccount } = await loadFixture(
       deployFixture
     );
-    await iTrustCollection.mint(2);
     await iTrustCollection.approve(ITrustStake.getAddress(), 1);
     await ITrustStake.stake(1);
 
     const instanceC = iTrustCollection.connect(otherAccount);
-    await instanceC.mint(1);
-    await instanceC.approve(ITrustStake.getAddress(), 3);
+    await instanceC.approve(ITrustStake.getAddress(), 100);
     const instance = ITrustStake.connect(otherAccount);
-    await instance.stake(3);
+    await instance.stake(100);
 
     const myNftsOwner = await ITrustStake.fetchMyNfts();
     const myNftsAccount = await instance.fetchMyNfts();
@@ -64,9 +112,7 @@ describe("ITrustStake", function () {
   });
 
   it("Should fetch my NFTs zero", async function () {
-    const { ITrustStake, iTrustCollection, otherAccount } = await loadFixture(
-      deployFixture
-    );
+    const { ITrustStake } = await loadFixture(deployFixture);
 
     const myNfts = await ITrustStake.fetchMyNfts();
 

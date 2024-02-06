@@ -13,18 +13,18 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
 
     
     IERC721 private immutable collection;
+    IERC20 private immutable wbnb;
 
     uint private duration; //Duration of the distribution
     uint private finishAt; //Finish period of distribution
     uint private updatedAt; // Last timestamp updated
-    uint public rewardRate; //Reward per second
+    uint private rewardRate; //Reward per second
     uint private rewardPerWeightStored; 
-    mapping(address => uint) public userRewardPerWeightPaid;
-    mapping(address => uint) public rewards; //Rewards of the user earned
+    mapping(address => uint) private userRewardPerWeightPaid; //Quantity colected by user
+    mapping(address => uint) private rewards; //Rewards of the user earned
 
-    //States Variables
     uint private totalSupply; //Total weight of all NFTs
-    mapping(address => uint) public balaceOf; // Total weight of a user
+    mapping(address => uint) public balanceOf; // Total weight of a user
     uint public totalStake; //Number of total NFTs in stake
 
 
@@ -36,8 +36,9 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
     mapping(uint => StakeItem) private stakeItems;
     
     
-    constructor(address _colection, address initialOwner) Ownable(initialOwner){
+    constructor(address _colection, address initialOwner, address _wbnb) Ownable(initialOwner){
         collection = IERC721(_colection);
+        wbnb = IERC20(_wbnb);
     }
 
 
@@ -45,7 +46,6 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         require(finishAt < block.timestamp,"Reward duration not finished");
         duration = _duration;
     }
-
 
     function notifyRewardAmount(uint _amount) external onlyOwner updateReward(address(0)) {
         if(block.timestamp > finishAt){
@@ -56,7 +56,7 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         }
 
         require(rewardRate > 0, "Reward rate equal to 0");
-        require(rewardRate * duration <= address(this).balance, "Reward amount greather than the balance");
+        require(rewardRate * duration <= wbnb.balanceOf(address(this)), "Reward amount greather than the balance");
 
         finishAt = block.timestamp + duration;
         updatedAt = block.timestamp;
@@ -65,10 +65,10 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
     function stake(uint tokenId) external nonReentrant updateReward(msg.sender){
         collection.safeTransferFrom(msg.sender,address(this),tokenId);
         if(tokenId <= 25){
-            balaceOf[msg.sender] += 3;
+            balanceOf[msg.sender] += 3;
             totalSupply += 3;
         }else{
-            balaceOf[msg.sender] += 1;
+            balanceOf[msg.sender] += 1;
             totalSupply += 1;
         }
         ++totalStake;
@@ -81,24 +81,23 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
     function withdraw(uint tokenId) external nonReentrant updateReward(msg.sender) {
         require(stakeItems[tokenId].owner == msg.sender, "Unauthorized");
         if(tokenId <= 25){
-            balaceOf[msg.sender] -= 3;
+            balanceOf[msg.sender] -= 3;
             totalSupply -= 3;
         }else{
-            balaceOf[msg.sender] -= 1;
+            balanceOf[msg.sender] -= 1;
             totalSupply -= 1;
         }
         --totalStake;
         delete stakeItems[tokenId];
         collection.safeTransferFrom(address(this), msg.sender, tokenId);
 
-
     }
 
-    function lastTimeRewardApplicable() public view returns(uint){
+    function lastTimeRewardApplicable() private view returns(uint){
         return _min(block.timestamp, finishAt);
     }
 
-    function rewardPerWeight() public view returns(uint){
+    function rewardPerWeight() private view returns(uint){
         if(totalSupply == 0){
             return rewardPerWeightStored;
         }
@@ -106,20 +105,18 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
     }
 
     function earned(address _account) public view returns(uint){
-        return (balaceOf[_account] * (rewardPerWeight() - userRewardPerWeightPaid[_account])) / 1e18 + rewards[_account];
+        return (balanceOf[_account] * (rewardPerWeight() - userRewardPerWeightPaid[_account])) / 1e18 + rewards[_account];
     }
-    function getReward() external updateReward(msg.sender) {
+    function getReward() external nonReentrant updateReward(msg.sender) {
         uint reward = rewards[msg.sender];
         if(reward > 0){
             rewards[msg.sender] = 0;
-            payable(msg.sender).transfer(reward);
+            wbnb.transfer(msg.sender,reward);
         }
     }
-
-    function _min(uint x, uint y) internal pure returns(uint){
+    function _min(uint x, uint y) private pure returns(uint){
         return x <= y ? x : y;
     }
-
 
     function fetchMyNfts() external view returns(StakeItem[] memory){
         uint count = 0;
