@@ -11,7 +11,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
 
 
-    
     IERC721 private immutable collection;
     IERC20 private immutable wbnb;
 
@@ -29,7 +28,6 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
 
 
     struct StakeItem{
-        uint itemId;
         uint tokenId;
         address payable owner;   
     }
@@ -46,6 +44,7 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         require(finishAt < block.timestamp,"Reward duration not finished");
         duration = _duration;
     }
+
 
     function notifyRewardAmount(uint _amount) external onlyOwner updateReward(address(0)) {
         if(block.timestamp > finishAt){
@@ -74,8 +73,6 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         ++totalStake;
         stakeItems[tokenId].owner = payable(msg.sender);
         stakeItems[tokenId].tokenId = tokenId;
-        stakeItems[tokenId].itemId = totalStake;
-
     }
 
     function withdraw(uint tokenId) external nonReentrant updateReward(msg.sender) {
