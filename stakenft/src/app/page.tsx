@@ -11,11 +11,26 @@ export default function MyStakes() {
   const [message, setMessage] = useState<NewMessage>({} as NewMessage);
   const [nfts, setNfts] = useState<NFT[]>([]);
   const [stake, setStake] = useState<BigInt>();
+  const [peso, setPeso] = useState<number>();
+  const myNfts = async () => {
+    try {
+      const nftsResult = await myNFTs();
+      setNfts(nftsResult);
 
-  const myNfts = () => {
-    myNFTs()
-      .then((nfts) => setNfts(nfts))
-      .catch((err) => console.log(err.msg));
+      let newPeso = 0;
+
+      nftsResult.forEach((nft) => {
+        if (Number(nft.tokenId) <= 25) {
+          newPeso += 3;
+        } else {
+          newPeso += 1;
+        }
+      });
+
+      setPeso(newPeso);
+    } catch (err: any) {
+      console.log(err.msg);
+    }
   };
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +86,9 @@ export default function MyStakes() {
       <section className="flex flex-wrap justify-evenly mt-12">
         {nfts.length > 0 ? <>{nfts[0].tokenId}</> : ""}
         {nfts.length > 0 ? (
-          nfts.map((nft: NFT, index) => <Nft key={index} {...nft} />)
+          nfts.map((nft: NFT, index) => (
+            <Nft key={index} {...nft} peso={peso || 0} />
+          ))
         ) : (
           <div className="flex flex-col pt-6 items-center justify-center">
             <Image

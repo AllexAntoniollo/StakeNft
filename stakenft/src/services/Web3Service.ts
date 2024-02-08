@@ -1,5 +1,4 @@
-import axios from "axios";
-import { EventLog, ethers } from "ethers";
+import { ethers } from "ethers";
 import StakeAbi from "./Stake.abi.json";
 import CollectionAbi from "./Collection.abi.json";
 
@@ -64,12 +63,44 @@ export async function withdraw(tokenId: number) {
   return;
 }
 
-export async function stake(tokenId: number) {
+export async function earned(address: string): Promise<bigint> {
   const provider = await getProvider();
   const signer = await provider.getSigner();
 
   const stakeContract = new ethers.Contract(STAKE_ADDRESS, StakeAbi, signer);
-  //await stakeContract.stake(tokenId);
+  const value: bigint = await stakeContract.earned(address);
+
+  return value;
+}
+
+export async function stake(tokenId: number) {
+  const provider = await getProvider();
+  const signer = await provider.getSigner();
+
+  const nftContract = new ethers.Contract(
+    COLLECTION_ADDRESS,
+    CollectionAbi,
+    signer
+  );
+  const isApproved = await nftContract.getApproved(tokenId);
+  if (isApproved !== true) {
+    const txApprove = await nftContract.approve(STAKE_ADDRESS, tokenId);
+    await txApprove.wait();
+  }
+  const stakeContract = new ethers.Contract(STAKE_ADDRESS, StakeAbi, signer);
+
+  const tx = await stakeContract.stake(tokenId);
+  tx.wait();
+  return;
+}
+
+export async function harvest() {
+  const provider = await getProvider();
+  const signer = await provider.getSigner();
+
+  const stakeContract = new ethers.Contract(STAKE_ADDRESS, StakeAbi, signer);
+
+  await stakeContract.getReward();
 
   return;
 }

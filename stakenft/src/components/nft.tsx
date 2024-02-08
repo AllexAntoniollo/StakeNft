@@ -1,11 +1,12 @@
 import { NFT } from "@/services/Web3Service";
 import { FiCornerDownRight } from "react-icons/fi";
-import { withdraw } from "@/services/Web3Service";
+import { withdraw, earned } from "@/services/Web3Service";
 import { NewMessage, Message } from "@/components/message";
-import { useState } from "react";
-export default function Nft(props: NFT) {
+import { useState, useEffect } from "react";
+import { ethers } from "ethers";
+export default function Nft(props: NFT & { peso: number }) {
   const [message, setMessage] = useState<NewMessage>({} as NewMessage);
-
+  const [total, setTotal] = useState<string>();
   const handleWithdraw = async () => {
     setMessage({ message: "Connecting MetaMask...wait...", type: "load" });
 
@@ -18,6 +19,25 @@ export default function Nft(props: NFT) {
       })
       .catch((err) => setMessage({ message: err.msg, type: "rejected" }));
   };
+  const value = async () => {
+    await earned(props.owner).then((valor) => {
+      const newValor = valor / BigInt(props.peso);
+      const formattedValue = ethers.formatEther(newValor);
+      if (Number(props.tokenId) <= 25) {
+        setTotal(String(Number(formattedValue) * 3));
+      } else {
+        setTotal(formattedValue);
+      }
+    });
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      value();
+    };
+
+    fetchData();
+  }, []);
   return (
     <>
       {" "}
@@ -28,7 +48,7 @@ export default function Nft(props: NFT) {
           width: "350px",
           borderColor: "#2D3748",
         }}
-        className="border-r-4 flex flex-col justify-evenly p-6 border-b-4 border-l border-t rounded-2xl"
+        className="border-r-4 mt-7 flex flex-col justify-evenly p-6 border-b-4 border-l border-t rounded-2xl"
       >
         <h1 className="text-2xl font-semibold">
           NFT Guaxinim #{Number(props.tokenId)}
@@ -51,8 +71,7 @@ export default function Nft(props: NFT) {
           <h2 className="flex items-center justify-between">
             <div className="flex flex-col">
               <p>Tokens ganhados</p>
-              <h1 className="text-2xl my-2">12.0 WBNB</h1>
-              <p>$ 0.000</p>
+              <h1 className="text-2xl my-2">{total?.slice(0, 5)} WBNB</h1>
             </div>
             <button
               onClick={handleWithdraw}

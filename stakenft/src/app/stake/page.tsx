@@ -29,6 +29,7 @@ export default function Stake() {
         message: "O Token ID deve estar entre 1 e 100.",
         type: "rejected",
       });
+
       return;
     }
 
@@ -38,6 +39,9 @@ export default function Stake() {
           message: "The NFT #" + tokenID + " was staked!",
           type: "successfully",
         });
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
       });
     } catch (err: any) {
       setMessage({ message: err.msg, type: "rejected" });
