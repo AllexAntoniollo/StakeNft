@@ -1,16 +1,25 @@
 "use client";
 import { useGlobalContext } from "@/contexts/WalletContext";
-
+import { FaArrowLeftLong } from "react-icons/fa6";
 import { TbPigMoney } from "react-icons/tb";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { NewMessage, Message } from "@/components/message";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { stake, doLogin } from "@/services/Web3Service";
-
+import Link from "next/link";
 export default function Stake() {
+  const [language, setLanguage] = useState<string>("pt-BR");
   const { wallet, setWallet } = useGlobalContext();
   const [message, setMessage] = useState<NewMessage>({} as NewMessage);
   const [tokenID, setTokenID] = useState<number>(0);
+  useEffect(() => {
+    const fetchData = async () => {
+      const idioma = localStorage.getItem("language");
+      setLanguage(idioma || "pt-BR");
+    };
+
+    fetchData();
+  });
   async function btnLoginClick() {
     try {
       const result = await doLogin();
@@ -50,14 +59,25 @@ export default function Stake() {
   return (
     <main className="w-full text-white flex bg-neutral-900 h-full">
       <div className="w-1/2 p-12">
+        <Link href={"/"}>
+          {" "}
+          <FaArrowLeftLong className="size-12"></FaArrowLeftLong>
+        </Link>
         <h1 className=" text-3xl flex items-center">
           <TbPigMoney className=" size-24"></TbPigMoney>
           <p className="ml-4">
-            Faça agora o stake de seu NFT e ganhe recompensas!
+            {language === "pt-BR"
+              ? "Faça agora o stake do seu NFT e ganhe recompensas"
+              : "Stake your nft now and earn rewards"}
           </p>
         </h1>
         <div className="border-white flex flex-col text-lg border p-6 rounded-lg mt-16">
-          <label>Qual o Token ID de seu nft?</label>
+          <label>
+            {" "}
+            {language === "pt-BR"
+              ? "Qual o token id de seu nft?"
+              : "Which is your nft token id?"}
+          </label>
           <input
             className="mt-6 text-black rounded outline-0 px-3 py-4"
             value={tokenID}
@@ -69,7 +89,10 @@ export default function Stake() {
               onClick={btnLoginClick}
               className="bg-transparent mt-4 flex justify-center hover:bg-purple-500 text-purple-600 font-semibold hover:text-white py-2 px-4 border border-purple-500 hover:border-transparent rounded"
             >
-              <p>Connect Wallet</p>
+              <p>
+                {" "}
+                {language === "pt-BR" ? "Conectar Carteira" : "Connect Wallet"}
+              </p>
             </button>
           ) : (
             <button
@@ -77,7 +100,7 @@ export default function Stake() {
               className="bg-transparent mt-4 flex justify-between items-center hover:bg-purple-500 text-purple-600 font-semibold hover:text-white py-2 px-4 border border-purple-500 hover:border-transparent rounded"
             >
               <p></p>
-              <p>Fazer Stake</p>
+              <p> {language === "pt-BR" ? "Fazer Stake" : "Create Stake"}</p>
               <FaArrowRightLong></FaArrowRightLong>
             </button>
           )}{" "}

@@ -22,11 +22,18 @@ export default function MyStakes() {
   const [stake, setStake] = useState<BigInt>();
   const [peso, setPeso] = useState<number>();
   const [total, setTotal] = useState<string>();
+  const [language, setLanguage] = useState<string>("pt-BR"); // Estado para rastrear o idioma
+
   const value = async () => {
     await earned(wallet).then((valor) => {
       const formattedValue = ethers.formatEther(valor);
       setTotal(formattedValue);
     });
+  };
+  const toggleLanguage = () => {
+    const newLanguage = language === "pt-BR" ? "en-US" : "pt-BR";
+    setLanguage(newLanguage);
+    localStorage.setItem("language", newLanguage); // Salva a escolha do usuário no localStorage
   };
   const myNfts = async () => {
     try {
@@ -87,25 +94,44 @@ export default function MyStakes() {
   }
   return (
     <main className="bg-neutral-900 p-8 text-white">
-      <section className="text-4xl ">
-        <h1 className="font-semibold">Stake</h1>
-        <h1 className="mt-2 text-neutral-400 mb-10 text-lg">
-          Faça stakes para ter participação no Itrust e ganhar recompensas.
-        </h1>
-        <Link
-          className="text-xl border p-4 rounded hover:bg-white hover:text-black"
-          href={"/stake"}
-        >
-          Fazer Stake
-        </Link>
+      <section className="text-4xl flex ">
+        <div className="w-1/2">
+          <h1 className="font-semibold">Stake</h1>
+          <h1 className="mt-2 text-neutral-400 mb-10 text-lg">
+            {language === "pt-BR"
+              ? "Faça stakes para ter participação no Itrust e ganhar recompensas."
+              : "Stake to participate in Itrust and earn rewards"}
+          </h1>
+          <Link
+            className="text-xl border p-4 rounded hover:bg-white hover:text-black"
+            href={"/stake"}
+          >
+            {language === "pt-BR" ? "Criar um Stake" : "Create a Stake"}{" "}
+          </Link>
+        </div>
+        <div className="w-1/2 flex items-end text-lg flex-col">
+          <div className="w-1/2 flex items-end text-lg flex-col">
+            <p onClick={toggleLanguage} style={{ cursor: "pointer" }}>
+              {language === "pt-BR" ? "pt-BR" : "en-US"}
+            </p>
+          </div>
+        </div>
       </section>
       <section className="flex justify-between text-xl px-6 pt-12">
         <div>
-          <p>Total de NFTs em Stakes</p>
+          <p>
+            {" "}
+            {language === "pt-BR"
+              ? "Total de NFTs em Stake"
+              : "Total staked NFTs"}
+          </p>
           <h1 className="text-4xl">{stake ? String(stake) : "0"}</h1>
         </div>
         <div>
-          <p>Meus NFTs em Stakes</p>
+          <p>
+            {" "}
+            {language === "pt-BR" ? "Meus NFTs em Stake" : "My staked NFTs"}
+          </p>
           <h1 className="text-4xl">{nfts.length}</h1>
         </div>
         {!wallet ? (
@@ -113,7 +139,10 @@ export default function MyStakes() {
             onClick={btnLoginClick}
             className="ease-linear text-black sm:mt-3 dark:hover:bg-gray-900 duration-150 dark:bg-neutral-800 dark:border-purple-700 flex items-center border border-purple-900 justify-center rounded bg-white px-3 py-2 hover:bg-purple-900 hover:text-white hover:shadow-md "
           >
-            <p>Connect Wallet</p>
+            <p>
+              {" "}
+              {language === "pt-BR" ? "Conectar a carteira" : "Connect Wallet"}
+            </p>
           </button>
         ) : (
           <div className="hover:bg-gray-50 dark:bg-zinc-950 transition-all text-black duration-300 dark:hover:bg-zinc-800 flex bg-white rounded-xl items-center font-medium p-3">
@@ -135,20 +164,37 @@ export default function MyStakes() {
               alt="no-data"
               src={"/no-data.svg"}
             ></Image>
-            <h2 className="text-3xl my-4">No NFTs Found</h2>
-            <p className="text-gray-500">There is nothing here!</p>
+            <h2 className="text-3xl my-4">
+              {" "}
+              {language === "pt-BR"
+                ? "Não foram encontradas NFTs"
+                : "No NFTs found"}
+            </h2>
+            <p className="text-gray-500">
+              {" "}
+              {language === "pt-BR"
+                ? "Não há nada aqui!"
+                : "There is nothing here!"}
+            </p>
           </div>
         )}
       </section>
       <div className="mt-10 flex items-center flex-col text-xl">
-        <h2>Your Total Rewards</h2>
+        <h2>
+          {" "}
+          {language === "pt-BR"
+            ? "Suas recompensas totais"
+            : "Your total rewards"}
+        </h2>
         <h2>{total?.slice(0, 5)} WBNB</h2>
       </div>
       <button
         onClick={btnHarvest}
         className="w-full mt-8 rounded-xl bg-purple-500 hover:bg-purple-600 p-6"
       >
-        HARVEST YOUR REWARDS
+        {language === "pt-BR"
+          ? "COLETE AS SUAS RECOMPENSAS"
+          : "HARVEST YOUR REWARDS"}
       </button>
       {message.message ? <Message {...message} /> : ""}
     </main>

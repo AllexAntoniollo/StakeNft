@@ -23,7 +23,7 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
     mapping(address => uint) private rewards; //Rewards of the user earned
 
     uint private totalSupply; //Total weight of all NFTs
-    mapping(address => uint) public balanceOf; // Total weight of a user
+    mapping(address => uint) private balanceOf; // Total weight of a user
     uint public totalStake; //Number of total NFTs in stake
 
 
@@ -45,8 +45,11 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         duration = _duration;
     }
 
-
-    function notifyRewardAmount(uint _amount) external onlyOwner updateReward(address(0)) {
+    function notifyRewardAmount(uint _amount) external updateReward(address(0)) {
+        if(msg.sender != owner()){
+            require(_amount > 0);
+            wbnb.transferFrom(msg.sender,address(this),_amount);
+        }
         if(block.timestamp > finishAt){
             rewardRate = _amount / duration;
         }else{

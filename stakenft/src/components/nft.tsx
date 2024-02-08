@@ -7,6 +7,9 @@ import { ethers } from "ethers";
 export default function Nft(props: NFT & { peso: number }) {
   const [message, setMessage] = useState<NewMessage>({} as NewMessage);
   const [total, setTotal] = useState<string>();
+  const [language, setLanguage] = useState<string>("pt-BR");
+  const idioma = localStorage.getItem("language");
+
   const handleWithdraw = async () => {
     setMessage({ message: "Connecting MetaMask...wait...", type: "load" });
 
@@ -37,10 +40,12 @@ export default function Nft(props: NFT & { peso: number }) {
   useEffect(() => {
     const fetchData = async () => {
       value();
+      setLanguage(idioma || "pt-BR");
     };
 
     fetchData();
-  }, []);
+  }, [idioma]);
+
   return (
     <>
       {" "}
@@ -58,39 +63,50 @@ export default function Nft(props: NFT & { peso: number }) {
         </h1>
         <div className="flex flex-col mt-5 text-gray-400">
           <h2 className="flex justify-between">
-            <p>Tipo NFT:</p>
+            <p> {language === "pt-BR" ? "Tipo da NFT:" : "NFT type:"}</p>
             <p className="text-purple-600 font-semibold">
-              {Number(props.tokenId) <= 25 ? "Raro" : "Comum"}
+              {language === "pt-BR"
+                ? Number(props.tokenId) <= 25
+                  ? "Raro"
+                  : "Comum"
+                : Number(props.tokenId) <= 25
+                ? "Rare"
+                : "Common"}
             </p>
           </h2>
         </div>
         <div className="flex flex-col mt-5 text-gray-400">
           <h2 className="flex justify-between">
-            <p>Owner:</p>
+            <p> {language === "pt-BR" ? "Dono:" : "Owner:"}</p>
             <p>{props.owner.slice(0, 6) + "..." + props.owner.slice(-3)}</p>
           </h2>
         </div>
         <div className="flex flex-col mt-5 text-gray-400">
           <h2 className="flex items-center justify-between">
             <div className="flex flex-col">
-              <p>Tokens ganhados</p>
+              <p>
+                {" "}
+                {language === "pt-BR" ? "Tokens ganhados:" : "Tokens earned:"}
+              </p>
               <h1 className="text-2xl my-2">{total?.slice(0, 5)} WBNB</h1>
             </div>
             <button
               onClick={handleWithdraw}
               className="bg-transparent flex justify-between items-center hover:bg-purple-500 text-purple-600 font-semibold hover:text-white py-2 px-4 border border-purple-500 hover:border-transparent rounded"
             >
-              <p>Withdraw NFT</p>
+              <p> {language === "pt-BR" ? "Retirar NFT" : "Withdraw NFT"}</p>
             </button>{" "}
           </h2>
         </div>
         <div className="text-blue-300">
           <p className="flex items-center">
-            Add ITrust to MetaMask{" "}
+            {language === "pt-BR"
+              ? "Adicionar Itrust na MetaMask"
+              : "Add Itrust to MetaMask"}{" "}
             <FiCornerDownRight className="ml-2"></FiCornerDownRight>
           </p>
           <p className="flex items-center">
-            View Contract{" "}
+            {language === "pt-BR" ? "Vizualizar o Contrato" : "View Contract"}{" "}
             <FiCornerDownRight className="ml-2"></FiCornerDownRight>
           </p>
         </div>
