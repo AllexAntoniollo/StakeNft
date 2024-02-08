@@ -16,6 +16,9 @@ export default function Nft(props: NFT & { peso: number }) {
           message: "The NFT #" + String(props.tokenId) + " was removed!",
           type: "successfully",
         });
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
       })
       .catch((err) => setMessage({ message: err.msg, type: "rejected" }));
   };

@@ -100,7 +100,7 @@ export async function harvest() {
 
   const stakeContract = new ethers.Contract(STAKE_ADDRESS, StakeAbi, signer);
 
-  await stakeContract.getReward();
-
+  const tx = await stakeContract.getReward();
+  tx.wait();
   return;
 }
