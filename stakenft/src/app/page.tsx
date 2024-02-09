@@ -26,7 +26,7 @@ export default function MyStakes() {
 
   const value = async () => {
     await earned(wallet).then((valor) => {
-      const formattedValue = ethers.formatEther(valor);
+      const formattedValue = ethers.formatEther(valor || 0);
       setTotal(formattedValue);
     });
   };
@@ -55,17 +55,24 @@ export default function MyStakes() {
       console.log(err.msg);
     }
   };
-  useEffect(() => {
-    const fetchData = async () => {
-      const total = await totalStake();
-      setStake(total);
-      myNfts();
-      if (wallet) {
-        value();
-      }
-    };
+  const fetchData = async () => {
+    localStorage.setItem("language", "pt-BR");
+    const total = await totalStake();
+    setStake(total);
+    myNfts();
+    if (wallet) {
+      value();
+    }
+  };
 
+  useEffect(() => {
     fetchData();
+
+    const intervalId = setInterval(() => {
+      fetchData();
+    }, 20000);
+
+    return () => clearInterval(intervalId);
   }, [wallet]);
 
   async function btnLoginClick() {

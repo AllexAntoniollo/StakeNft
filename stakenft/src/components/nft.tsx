@@ -27,7 +27,7 @@ export default function Nft(props: NFT & { peso: number }) {
   };
   const value = async () => {
     await earned(props.owner).then((valor) => {
-      const newValor = valor / BigInt(props.peso);
+      const newValor = (valor || BigInt(0)) / BigInt(props.peso);
       const formattedValue = ethers.formatEther(newValor);
       if (Number(props.tokenId) <= 25) {
         setTotal(String(Number(formattedValue) * 3));
@@ -37,13 +37,19 @@ export default function Nft(props: NFT & { peso: number }) {
     });
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      value();
-      setLanguage(idioma || "pt-BR");
-    };
+  const fetchData = async () => {
+    value();
+    setLanguage(idioma || "pt-BR");
+  };
 
+  useEffect(() => {
     fetchData();
+
+    const intervalId = setInterval(() => {
+      fetchData();
+    }, 20000);
+
+    return () => clearInterval(intervalId);
   }, [idioma]);
 
   return (

@@ -89,7 +89,8 @@ export async function withdraw(tokenId: number): Promise<void> {
     const signer = await provider.getSigner();
     const stakeContract = new ethers.Contract(STAKE_ADDRESS, StakeAbi, signer);
 
-    await stakeContract.withdraw(tokenId);
+    const tx = await stakeContract.withdraw(tokenId);
+    await tx.wait();
   } catch (error) {
     console.error("Error during withdrawal:", error);
     throw error;

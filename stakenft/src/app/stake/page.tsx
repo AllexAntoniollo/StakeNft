@@ -71,7 +71,7 @@ export default function Stake() {
               : "Stake your nft now and earn rewards"}
           </p>
         </h1>
-        <div className="border-white flex flex-col text-lg border p-6 rounded-lg mt-16">
+        <div className="border-white flex flex-col text-lg border p-6 rounded-lg mt-12">
           <label>
             {" "}
             {language === "pt-BR"
