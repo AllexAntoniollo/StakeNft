@@ -4,6 +4,7 @@ import { withdraw, earned } from "@/services/Web3Service";
 import { NewMessage, Message } from "@/components/message";
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
+import Link from "next/link";
 export default function Nft(props: NFT & { peso: number }) {
   const [message, setMessage] = useState<NewMessage>({} as NewMessage);
   const [total, setTotal] = useState<string>();
@@ -107,14 +108,20 @@ export default function Nft(props: NFT & { peso: number }) {
         <div className="text-blue-300">
           <p className="flex items-center">
             {language === "pt-BR"
-              ? "Adicionar Itrust na MetaMask"
-              : "Add Itrust to MetaMask"}{" "}
+              ? "Adicionar iTRUST na MetaMask"
+              : "Add iTRUST to MetaMask"}{" "}
             <FiCornerDownRight className="ml-2"></FiCornerDownRight>
           </p>
-          <p className="flex items-center">
+          <Link
+            href={
+              "https://testnet.bscscan.com/nft/0xb9a23b611c0ee460475cf77b32da289cb9e9adc6/" +
+              props.tokenId
+            }
+            className="flex items-center"
+          >
             {language === "pt-BR" ? "Vizualizar o Contrato" : "View Contract"}{" "}
             <FiCornerDownRight className="ml-2"></FiCornerDownRight>
-          </p>
+          </Link>
         </div>
       </div>
       {message.message ? <Message {...message} /> : ""}

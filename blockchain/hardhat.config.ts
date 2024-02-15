@@ -3,7 +3,15 @@ import "@nomicfoundation/hardhat-toolbox";
 import dotenv from "dotenv";
 dotenv.config();
 const config: HardhatUserConfig = {
-  solidity: "0.8.24",
+  solidity: {
+    version: "0.8.24",
+    settings: {
+      optimizer: {
+        enabled: false, // Ativar no deploy mainnet
+        runs: 200,
+      },
+    },
+  },
   networks: {
     bscscan: {
       url: process.env.RPC_URL,

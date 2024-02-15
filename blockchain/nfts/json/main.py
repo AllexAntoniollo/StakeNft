@@ -7,9 +7,10 @@ def generate_filename(index):
 # Função para gerar os dados JSON
 def generate_json_data(index):
     return {
-        "name": f"Itrust {index}",
-        "description": "Collection of 25 rares and 75 commons nfts",
-        "image": f"ipfs://CID/{index}.png"
+        "name": f"iTRUST #{index}",
+        "tokenId":index,
+        "description": "Collection of 25 rare and 75 common NFTs. This collection will provide a reward from an iTRUST streaming platform.",
+        "image": f"https://gateway.pinata.cloud/ipfs/QmcqvsA1btSmcmMhqUpe8z7ZAuDfxupygN1ZszLNhzks3W/NFT{index}.png"
     }
 
 # Gera os 100 arquivos JSON

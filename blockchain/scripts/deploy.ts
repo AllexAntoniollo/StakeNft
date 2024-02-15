@@ -1,7 +1,8 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  /*const ITrustCollection = await ethers.getContractFactory("ITrust");
+  /*
+  const ITrustCollection = await ethers.getContractFactory("ITrustCollection");
   const iTrustCollection = await ITrustCollection.deploy();
 
   await iTrustCollection.waitForDeployment();
@@ -9,23 +10,27 @@ async function main() {
 
   console.log(`iTrustCollection deployed to ${iTrustCollectionAddress}`);
 
-  const Token = await ethers.getContractFactory("Token");
-  const token = await Token.deploy();
-
-  await token.waitForDeployment();
-  const tokenAddress = await token.getAddress();
-*/
   const ITrustStake = await ethers.getContractFactory("ITrustStake");
   const iTrustStake = await ITrustStake.deploy(
-    "0x2Dc0940fda6173d86fa70E5b2D1779f7FA8e489b",
+    iTrustCollectionAddress,
     "0xa8F5e4d1c612f0d36B7FB3f63F7e864da28d9FfA",
-    "0x387A78854dEDA9176990c3610d9Dc5d04E146289"
+    "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd"
   );
 
   await iTrustStake.waitForDeployment();
   const iTrustStakeAddress = await iTrustStake.getAddress();
 
-  console.log(`iTrustStake deployed to ${iTrustStakeAddress}`);
+  console.log(`iTrustStake deployed to ${iTrustStakeAddress}`);*/
+  const Streaming = await ethers.getContractFactory("StreamingiTrust");
+  const streaming = await Streaming.deploy(
+    "0xBc9E7C67B127405194cB556B3D9DE39cA8AE07Cb",
+    "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd"
+  );
+
+  await streaming.waitForDeployment();
+  const streamingAddress = await streaming.getAddress();
+
+  console.log(`streaming deployed to ${streamingAddress}`);
 }
 
 main().catch((error) => {

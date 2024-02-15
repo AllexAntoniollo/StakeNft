@@ -3,10 +3,10 @@ pragma solidity ^0.8.24;
 
 import "erc721a/contracts/ERC721A.sol";
 
-contract ITrust is ERC721A {
+contract ITrustCollection is ERC721A {
 
     constructor()
-        ERC721A("ITrust", "ITM")
+        ERC721A("ITrustCollection", "ITC")
     {}
 
     function _startTokenId() internal override view virtual returns (uint256) {
@@ -14,7 +14,7 @@ contract ITrust is ERC721A {
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "ipfs://teal-causal-salamander-208.mypinata.cloud/";
+        return "https://gateway.pinata.cloud/ipfs/QmQJdFSUDHmMTV2NpzREV2Xv1wSZ2ZtNtr9p9PZ7zWHSNf/";
     }
 
     function tokenURI(uint256 tokenId)
@@ -23,14 +23,17 @@ contract ITrust is ERC721A {
         override(ERC721A)
         returns (string memory)
     {
-        return string.concat(super.tokenURI(tokenId));
+        return string.concat(super.tokenURI(tokenId), ".json");
     }
 
-    function mint(uint256 quantity) external {
+    function mint() external {
         require(_nextTokenId() <= 100,"Total supply of collection was been reached");
-        _mint(msg.sender,quantity);
+        _mint(msg.sender,100);
     }
 
+    function contractURI() public pure returns (string memory) {
+        return "ipfs://QmcqJLYrxyydHWpcEpEBTRTF34JtHTDZUtcRP5rkRMQjei";
+    }
 
 
 }

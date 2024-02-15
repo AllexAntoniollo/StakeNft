@@ -58,7 +58,7 @@ export default function Stake() {
   };
   return (
     <main className="w-full text-white flex bg-neutral-900 h-full">
-      <div className="w-1/2 p-12">
+      <div className="w-1/2 sm:w-full p-12">
         <Link href={"/"}>
           {" "}
           <FaArrowLeftLong className="size-12"></FaArrowLeftLong>
@@ -108,7 +108,7 @@ export default function Stake() {
       </div>
       <div
         style={{ backgroundImage: "url(/guaxinim.png)" }}
-        className="w-1/2 h-full bg-cover bg-no-repeat"
+        className="w-1/2 sm:hidden md:bg-center h-full bg-cover bg-no-repeat"
       ></div>
       {message.message ? <Message {...message} /> : ""}
     </main>

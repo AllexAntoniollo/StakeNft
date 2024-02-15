@@ -43,13 +43,6 @@
     "type": "event"
   },
   {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "name": "balanceOf",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       { "internalType": "address", "name": "_account", "type": "address" }
     ],
@@ -64,7 +57,7 @@
     "outputs": [
       {
         "components": [
-          { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
+          { "internalType": "uint8", "name": "tokenId", "type": "uint8" },
           {
             "internalType": "address payable",
             "name": "owner",
@@ -88,7 +81,7 @@
   },
   {
     "inputs": [
-      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+      { "internalType": "uint128", "name": "_amount", "type": "uint128" }
     ],
     "name": "notifyRewardAmount",
     "outputs": [],
@@ -123,7 +116,7 @@
   },
   {
     "inputs": [
-      { "internalType": "uint256", "name": "_duration", "type": "uint256" }
+      { "internalType": "uint32", "name": "_duration", "type": "uint32" }
     ],
     "name": "setRewardsDuration",
     "outputs": [],
@@ -131,9 +124,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
-    ],
+    "inputs": [{ "internalType": "uint8", "name": "tokenId", "type": "uint8" }],
     "name": "stake",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -142,7 +133,7 @@
   {
     "inputs": [],
     "name": "totalStake",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -156,9 +147,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
-    ],
+    "inputs": [{ "internalType": "uint8", "name": "tokenId", "type": "uint8" }],
     "name": "withdraw",
     "outputs": [],
     "stateMutability": "nonpayable",

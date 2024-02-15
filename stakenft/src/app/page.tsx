@@ -22,7 +22,8 @@ export default function MyStakes() {
   const [stake, setStake] = useState<BigInt>();
   const [peso, setPeso] = useState<number>();
   const [total, setTotal] = useState<string>();
-  const [language, setLanguage] = useState<string>("pt-BR"); // Estado para rastrear o idioma
+  const [language, setLanguage] = useState<string>("pt-BR");
+  const idioma = localStorage.getItem("language");
 
   const value = async () => {
     await earned(wallet).then((valor) => {
@@ -56,7 +57,7 @@ export default function MyStakes() {
     }
   };
   const fetchData = async () => {
-    localStorage.setItem("language", "pt-BR");
+    setLanguage(idioma || "pt-BR");
     const total = await totalStake();
     setStake(total);
     myNfts();
@@ -102,12 +103,12 @@ export default function MyStakes() {
   return (
     <main className="bg-neutral-900 p-8 text-white">
       <section className="text-4xl flex ">
-        <div className="w-1/2">
+        <div className="w-2/3">
           <h1 className="font-semibold">Stake</h1>
           <h1 className="mt-2 text-neutral-400 mb-10 text-lg">
             {language === "pt-BR"
-              ? "Faça stakes para ter participação no Itrust e ganhar recompensas."
-              : "Stake to participate in Itrust and earn rewards"}
+              ? "Faça stakes para ter participação no iTRUST e ganhar recompensas."
+              : "Stake to participate in iTRUST and earn rewards"}
           </h1>
           <Link
             className="text-xl border p-4 rounded hover:bg-white hover:text-black"
@@ -116,7 +117,7 @@ export default function MyStakes() {
             {language === "pt-BR" ? "Criar um Stake" : "Create a Stake"}{" "}
           </Link>
         </div>
-        <div className="w-1/2 flex items-end text-lg flex-col">
+        <div className="w-1/3 flex items-end text-lg flex-col">
           <div className="w-1/2 flex items-end text-lg flex-col">
             <p onClick={toggleLanguage} style={{ cursor: "pointer" }}>
               {language === "pt-BR" ? "pt-BR" : "en-US"}
@@ -124,7 +125,7 @@ export default function MyStakes() {
           </div>
         </div>
       </section>
-      <section className="flex justify-between text-xl px-6 pt-12">
+      <section className="flex sm:text-center justify-between sm:flex-col sm:items-center mt-6 text-xl px-6 pt-12">
         <div>
           <p>
             {" "}
@@ -134,7 +135,7 @@ export default function MyStakes() {
           </p>
           <h1 className="text-4xl">{stake ? String(stake) : "0"}</h1>
         </div>
-        <div>
+        <div className="sm:mt-8">
           <p>
             {" "}
             {language === "pt-BR" ? "Meus NFTs em Stake" : "My staked NFTs"}
@@ -144,7 +145,7 @@ export default function MyStakes() {
         {!wallet ? (
           <button
             onClick={btnLoginClick}
-            className="ease-linear text-black sm:mt-3 dark:hover:bg-gray-900 duration-150 dark:bg-neutral-800 dark:border-purple-700 flex items-center border border-purple-900 justify-center rounded bg-white px-3 py-2 hover:bg-purple-900 hover:text-white hover:shadow-md "
+            className="ease-linear  text-black sm:mt-8 dark:hover:bg-gray-900 duration-150 dark:bg-neutral-800 dark:border-purple-700 flex items-center border border-purple-900 justify-center rounded bg-white px-3 py-2 hover:bg-purple-900 hover:text-white hover:shadow-md "
           >
             <p>
               {" "}
@@ -152,7 +153,7 @@ export default function MyStakes() {
             </p>
           </button>
         ) : (
-          <div className="hover:bg-gray-50 dark:bg-zinc-950 transition-all text-black duration-300 dark:hover:bg-zinc-800 flex bg-white rounded-xl items-center font-medium p-3">
+          <div className="hover:bg-gray-50 sm:mt-8 dark:bg-zinc-950 transition-all text-black duration-300 dark:hover:bg-zinc-800 flex bg-white rounded-xl items-center font-medium p-3">
             <div>{wallet.slice(0, 6) + "..." + wallet.slice(-3)}</div>
           </div>
         )}

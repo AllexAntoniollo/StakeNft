@@ -14,24 +14,22 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
     IERC721 private immutable collection;
     IERC20 private immutable wbnb;
 
-    uint private duration; //Duration of the distribution
+    uint64 private rewardRate; //Reward per second
+    uint32 private duration; //Duration of the distribution
     uint private finishAt; //Finish period of distribution
     uint private updatedAt; // Last timestamp updated
-    uint private rewardRate; //Reward per second
     uint private rewardPerWeightStored; 
     mapping(address => uint) private userRewardPerWeightPaid; //Quantity colected by user
     mapping(address => uint) private rewards; //Rewards of the user earned
 
-    uint private totalSupply; //Total weight of all NFTs
-    mapping(address => uint) private balanceOf; // Total weight of a user
-    uint public totalStake; //Number of total NFTs in stake
-
-
+    uint8 private totalSupply; //Total weight of all NFTs
+    uint8 public totalStake; //Number of total NFTs in stake
+    mapping(address => uint8) private balanceOf; // Total weight of a user
     struct StakeItem{
-        uint tokenId;
+        uint8 tokenId;
         address payable owner;   
     }
-    mapping(uint => StakeItem) private stakeItems;
+    mapping(uint8 => StakeItem) private stakeItems;
     
     
     constructor(address _colection, address initialOwner, address _wbnb) Ownable(initialOwner){
@@ -40,21 +38,21 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
     }
 
 
-    function setRewardsDuration(uint _duration) external onlyOwner{
+    function setRewardsDuration(uint32 _duration) external onlyOwner{
         require(finishAt < block.timestamp,"Reward duration not finished");
         duration = _duration;
     }
 
-    function notifyRewardAmount(uint _amount) external updateReward(address(0)) {
+    function notifyRewardAmount(uint128 _amount) external updateReward(address(0)) {
         if(msg.sender != owner()){
             require(_amount > 0);
             wbnb.transferFrom(msg.sender,address(this),_amount);
         }
         if(block.timestamp > finishAt){
-            rewardRate = _amount / duration;
+            rewardRate = uint64(_amount / duration);
         }else{
-            uint remainingRewards = rewardRate * (finishAt - block.timestamp);
-            rewardRate = (remainingRewards + _amount) / duration;
+            uint64 remainingRewards = rewardRate * uint32((finishAt - block.timestamp));
+            rewardRate = uint64((remainingRewards + _amount) / duration);
         }
 
         require(rewardRate > 0, "Reward rate equal to 0");
@@ -64,7 +62,7 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         updatedAt = block.timestamp;
     }
 
-    function stake(uint tokenId) external nonReentrant updateReward(msg.sender){
+    function stake(uint8 tokenId) external nonReentrant updateReward(msg.sender){
         collection.safeTransferFrom(msg.sender,address(this),tokenId);
         if(tokenId <= 25){
             balanceOf[msg.sender] += 3;
@@ -78,7 +76,7 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         stakeItems[tokenId].tokenId = tokenId;
     }
 
-    function withdraw(uint tokenId) external nonReentrant updateReward(msg.sender) {
+    function withdraw(uint8 tokenId) external nonReentrant updateReward(msg.sender) {
         require(stakeItems[tokenId].owner == msg.sender, "Unauthorized");
         if(tokenId <= 25){
             balanceOf[msg.sender] -= 3;
@@ -119,10 +117,10 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
     }
 
     function fetchMyNfts() external view returns(StakeItem[] memory){
-        uint count = 0;
-        uint total = 0;
+        uint8 count = 0;
+        uint8 total = 0;
 
-        for(uint i=1;i <= 100; ++i){
+        for(uint8 i=1;i <= 100; ++i){
             if(stakeItems[i].owner != address(0)){
                 ++total;
                 if(stakeItems[i].owner == address(msg.sender)){
@@ -135,11 +133,11 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         }
 
         StakeItem[] memory items = new StakeItem[](count);
-        uint currentIndex = 0;
+        uint8 currentIndex = 0;
         if(count == 0){
             return items; 
         }else{
-            for(uint i=1; i <= 100; ++i){
+            for(uint8 i=1; i <= 100; ++i){
                 if(stakeItems[i].owner == msg.sender){
                     items[currentIndex] = stakeItems[i];
                     ++currentIndex;
