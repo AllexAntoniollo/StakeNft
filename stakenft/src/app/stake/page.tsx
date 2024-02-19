@@ -14,8 +14,10 @@ export default function Stake() {
   const [tokenID, setTokenID] = useState<number>(0);
   useEffect(() => {
     const fetchData = async () => {
-      const idioma = localStorage.getItem("language");
-      setLanguage(idioma || "pt-BR");
+      if (typeof window !== "undefined") {
+        const idioma = localStorage.getItem("language");
+        setLanguage(idioma || "pt-BR");
+      }
     };
 
     fetchData();

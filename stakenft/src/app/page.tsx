@@ -23,7 +23,12 @@ export default function MyStakes() {
   const [peso, setPeso] = useState<number>();
   const [total, setTotal] = useState<string>();
   const [language, setLanguage] = useState<string>("pt-BR");
-  const idioma = localStorage.getItem("language");
+  let idioma: any;
+  if (typeof window !== "undefined") {
+    idioma = localStorage.getItem("language");
+  } else {
+    idioma = undefined;
+  }
 
   const value = async () => {
     await earned(wallet).then((valor) => {
@@ -34,7 +39,9 @@ export default function MyStakes() {
   const toggleLanguage = () => {
     const newLanguage = language === "pt-BR" ? "en-US" : "pt-BR";
     setLanguage(newLanguage);
-    localStorage.setItem("language", newLanguage); // Salva a escolha do usuário no localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("language", newLanguage); // Salva a escolha do usuário no localStorage
+    }
   };
   const myNfts = async () => {
     try {

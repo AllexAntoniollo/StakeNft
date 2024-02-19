@@ -15,7 +15,7 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
     IERC20 private immutable wbnb;
 
     uint64 private rewardRate; //Reward per second
-    uint32 private duration; //Duration of the distribution
+    uint32 private duration = 600; //Duration of the distribution
     uint private finishAt; //Finish period of distribution
     uint private updatedAt; // Last timestamp updated
     uint private rewardPerWeightStored; 
