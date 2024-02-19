@@ -179,7 +179,7 @@ export default function MyStakes() {
               alt="no-data"
               src={"/no-data.svg"}
             ></Image>
-            <h2 className="text-3xl my-4">
+            <h2 className="text-3xl text-center my-4">
               {" "}
               {language === "pt-BR"
                 ? "Não foram encontradas NFTs"
