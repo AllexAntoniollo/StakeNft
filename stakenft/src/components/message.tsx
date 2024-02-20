@@ -18,7 +18,11 @@ export function Message(props: NewMessage) {
       {isVisible && (
         <div
           style={{ height: "420px", width: "370px" }}
-          className="z-20 dark:bg-neutral-700 text-xl text-black text-center fixed top-1/2 left-1/2 p-6 bg-white rounded-3xl -translate-x-1/2 -translate-y-1/2"
+          className={`${
+            isVisible
+              ? "z-20 dark:bg-neutral-700 text-xl text-black text-center fixed top-1/2 left-1/2 p-6 bg-white rounded-3xl -translate-x-1/2 -translate-y-1/2"
+              : "hidden"
+          }`}
         >
           <IoCloseOutline
             onClick={handleClose}
