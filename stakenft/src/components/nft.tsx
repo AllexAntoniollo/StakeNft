@@ -74,11 +74,11 @@ export default function Nft(props: NFT & { peso: number }) {
             <p className="text-purple-600 font-semibold">
               {language === "pt-BR"
                 ? Number(props.tokenId) <= 25
-                  ? "Raro"
-                  : "Comum"
+                  ? "Fundador"
+                  : "Colaborador"
                 : Number(props.tokenId) <= 25
-                ? "Rare"
-                : "Common"}
+                ? "Founder"
+                : "Collaborator"}
             </p>
           </h2>
         </div>
