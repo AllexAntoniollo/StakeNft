@@ -11,6 +11,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
 
 
+    event RewardDistribution(uint128 amount);
+    event Staked(address indexed user, uint8 tokenId);
+    event Withdrawn(address indexed user, uint8 tokenId);
+    event RewardClaimed(address indexed user, uint reward);
+
     IERC721 private immutable collection;
     IERC20 private immutable wbnb;
 
@@ -47,6 +52,7 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         if(msg.sender != owner()){
             require(_amount > 0);
             wbnb.transferFrom(msg.sender,address(this),_amount);
+
         }
         if(block.timestamp > finishAt){
             rewardRate = uint64(_amount / duration);
@@ -60,6 +66,8 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
 
         finishAt = block.timestamp + duration;
         updatedAt = block.timestamp;
+        emit RewardDistribution(_amount);
+
     }
 
     function stake(uint8 tokenId) external nonReentrant updateReward(msg.sender){
@@ -74,6 +82,8 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         ++totalStake;
         stakeItems[tokenId].owner = payable(msg.sender);
         stakeItems[tokenId].tokenId = tokenId;
+        emit Staked(msg.sender, tokenId);
+
     }
 
     function withdraw(uint8 tokenId) external nonReentrant updateReward(msg.sender) {
@@ -88,6 +98,8 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         --totalStake;
         delete stakeItems[tokenId];
         collection.safeTransferFrom(address(this), msg.sender, tokenId);
+        emit Withdrawn(msg.sender, tokenId);
+
 
     }
 
@@ -110,6 +122,8 @@ contract ITrustStake is ERC721Holder, ReentrancyGuard, Ownable {
         if(reward > 0){
             rewards[msg.sender] = 0;
             wbnb.transfer(msg.sender,reward);
+            emit RewardClaimed(msg.sender, reward);
+
         }
     }
     function _min(uint x, uint y) private pure returns(uint){
